@@ -1,0 +1,31 @@
+{
+  "name": "nodebb-plugin-sso-twitter",
+  "version": "0.1.0-1",
+  "description": "NodeBB Twitter SSO",
+  "main": "library.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/julianlam/nodebb-plugin-sso-twitter"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "twitter",
+    "sso",
+    "single sign on",
+    "registration"
+  ],
+  "author": {
+    "name": "Julian Lam",
+    "email": "julian@nodebb.org"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/julianlam/nodebb-plugin-sso-twitter/issues"
+  },
+  "readme": "",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "passport-twitter": "~1.0.2"
+  }
+}
