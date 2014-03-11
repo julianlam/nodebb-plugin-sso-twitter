@@ -104,7 +104,7 @@
 		});
 	};
 
-	Twitter.addMenuItem = function(custom_header) {
+	Twitter.addMenuItem = function(custom_header, callback) {
 		custom_header.authentication.push({
 			"route": constants.admin.route,
 			"icon": constants.admin.icon,
