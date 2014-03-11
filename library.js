@@ -13,14 +13,24 @@
 	var constants = Object.freeze({
 		'name': "Twitter",
 		'admin': {
-			'route': '/twitter',
+			'route': '/plugins/sso-twitter',
 			'icon': 'fa-twitter-square'
 		}
 	});
 
 	var Twitter = {};
 
-	Twitter.getStrategy = function(strategies) {
+	Twitter.init = function(app, middleware, controllers) {
+		function render(req, res, next) {
+			res.render('admin/plugins/sso-twitter', {});
+		}
+
+		console.log('adding twitter routes!');
+		app.get('/admin/plugins/sso-twitter', middleware.admin.buildHeader, render);
+		app.get('/api/admin/plugins/sso-twitter', render);
+	};
+
+	Twitter.getStrategy = function(strategies, callback) {
 		if (meta.config['social:twitter:key'] && meta.config['social:twitter:secret']) {
 			passport.use(new passportTwitter({
 				consumerKey: meta.config['social:twitter:key'],
@@ -44,7 +54,7 @@
 			});
 		}
 
-		return strategies;
+		callback(null, strategies);
 	};
 
 	Twitter.login = function(twid, handle, photos, callback) {
@@ -101,28 +111,28 @@
 			"name": constants.name
 		});
 
-		return custom_header;
+		callback(null, custom_header);
 	}
 
-	Twitter.addAdminRoute = function(custom_routes, callback) {
-		fs.readFile(path.resolve(__dirname, './static/admin.tpl'), function (err, template) {
-			custom_routes.routes.push({
-				"route": constants.admin.route,
-				"method": "get",
-				"options": function(req, res, callback) {
-					callback({
-						req: req,
-						res: res,
-						route: constants.admin.route,
-						name: constants.name,
-						content: template
-					});
-				}
-			});
+	// Twitter.addAdminRoute = function(custom_routes, callback) {
+	// 	fs.readFile(path.resolve(__dirname, './static/admin.tpl'), function (err, template) {
+	// 		custom_routes.routes.push({
+	// 			"route": constants.admin.route,
+	// 			"method": "get",
+	// 			"options": function(req, res, callback) {
+	// 				callback({
+	// 					req: req,
+	// 					res: res,
+	// 					route: constants.admin.route,
+	// 					name: constants.name,
+	// 					content: template
+	// 				});
+	// 			}
+	// 		});
 
-			callback(null, custom_routes);
-		});
-	};
+	// 		callback(null, custom_routes);
+	// 	});
+	// };
 
 	module.exports = Twitter;
 }(module));

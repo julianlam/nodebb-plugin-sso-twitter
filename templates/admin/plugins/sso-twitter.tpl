@@ -9,8 +9,8 @@
 			paste your application details here.
 		</p>
 		<br />
-		<input type="text" data-field="social:twitter:key" title="Consumer Key" class="form-control input-lg" placeholder="Consumer Key"><br />
-		<input type="text" data-field="social:twitter:secret" title="Consumer Secret" class="form-control input-md" placeholder="Consumer Secret">
+		<input type="text" data-field="social:twitter:key" title="API Key" class="form-control input-lg" placeholder="API Key"><br />
+		<input type="text" data-field="social:twitter:secret" title="API Secret" class="form-control input-md" placeholder="API Secret">
 	</div>
 </form>
 
