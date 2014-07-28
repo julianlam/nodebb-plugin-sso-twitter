@@ -50,7 +50,7 @@
 				name: 'twitter',
 				url: '/auth/twitter',
 				callbackURL: '/auth/twitter/callback',
-				icon: 'twitter',
+				icon: constants.admin.icon,
 				scope: ''
 			});
 		}
