@@ -5,10 +5,10 @@
 		meta = module.parent.require('./meta'),
 		db = module.parent.require('../src/database'),
 		passport = module.parent.require('passport'),
-  		passportTwitter = require('passport-twitter').Strategy,
-  		fs = module.parent.require('fs'),
-  		path = module.parent.require('path'),
-  		nconf = module.parent.require('nconf');
+		passportTwitter = require('passport-twitter').Strategy,
+		fs = module.parent.require('fs'),
+		path = module.parent.require('path'),
+		nconf = module.parent.require('nconf');
 
 	var constants = Object.freeze({
 		'name': "Twitter",
@@ -20,14 +20,15 @@
 
 	var Twitter = {};
 
-	Twitter.init = function(app, middleware, controllers) {
+	Twitter.init = function(app, middleware, controllers, callback) {
 		function render(req, res, next) {
 			res.render('admin/plugins/sso-twitter', {});
 		}
 
-		console.log('adding twitter routes!');
 		app.get('/admin/plugins/sso-twitter', middleware.admin.buildHeader, render);
 		app.get('/api/admin/plugins/sso-twitter', render);
+
+		callback();
 	};
 
 	Twitter.getStrategy = function(strategies, callback) {
@@ -112,27 +113,7 @@
 		});
 
 		callback(null, custom_header);
-	}
-
-	// Twitter.addAdminRoute = function(custom_routes, callback) {
-	// 	fs.readFile(path.resolve(__dirname, './static/admin.tpl'), function (err, template) {
-	// 		custom_routes.routes.push({
-	// 			"route": constants.admin.route,
-	// 			"method": "get",
-	// 			"options": function(req, res, callback) {
-	// 				callback({
-	// 					req: req,
-	// 					res: res,
-	// 					route: constants.admin.route,
-	// 					name: constants.name,
-	// 					content: template
-	// 				});
-	// 			}
-	// 		});
-
-	// 		callback(null, custom_routes);
-	// 	});
-	// };
+	};
 
 	module.exports = Twitter;
 }(module));
