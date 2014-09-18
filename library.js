@@ -127,7 +127,7 @@
 				winston.error('[sso-twitter] Could not remove OAuthId data for uid ' + uid + '. Error: ' + err);
 				return callback(err);
 			}
-			callback();
+			callback(null, uid);
 		});
 	};
 
