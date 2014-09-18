@@ -8,7 +8,8 @@
 		passportTwitter = require('passport-twitter').Strategy,
 		fs = module.parent.require('fs'),
 		path = module.parent.require('path'),
-		nconf = module.parent.require('nconf');
+		nconf = module.parent.require('nconf'),
+		async = module.parent.require('async');
 
 	var constants = Object.freeze({
 		'name': "Twitter",
@@ -113,6 +114,21 @@
 		});
 
 		callback(null, custom_header);
+	};
+
+	Twitter.deleteUserData = function(uid, callback) {
+		async.waterfall([
+			async.apply(user.getUserField, uid, 'twid'),
+			function(oAuthIdToDelete, next) {
+				db.deleteObjectField('twid:uid', oAuthIdToDelete, next);
+			}
+		], function(err) {
+			if (err) {
+				winston.error('[sso-oauth] Could not remove OAuthId data for uid ' + uid + '. Error: ' + err);
+				return callback(err);
+			}
+			callback();
+		});
 	};
 
 	module.exports = Twitter;
