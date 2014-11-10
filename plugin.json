@@ -10,6 +10,5 @@
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "filter:user.delete", "method": "deleteUserData" }
 	],
-	"templates": "./templates",
-	"minver": "0.5.0"
+	"templates": "./templates"
 }

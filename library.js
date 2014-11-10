@@ -21,13 +21,13 @@
 
 	var Twitter = {};
 
-	Twitter.init = function(app, middleware, controllers, callback) {
+	Twitter.init = function(data, callback) {
 		function render(req, res, next) {
 			res.render('admin/plugins/sso-twitter', {});
 		}
 
-		app.get('/admin/plugins/sso-twitter', middleware.admin.buildHeader, render);
-		app.get('/api/admin/plugins/sso-twitter', render);
+		data.app.get('/admin/plugins/sso-twitter', data.middleware.admin.buildHeader, render);
+		data.app.get('/api/admin/plugins/sso-twitter', render);
 
 		callback();
 	};
