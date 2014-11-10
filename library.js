@@ -26,8 +26,8 @@
 			res.render('admin/plugins/sso-twitter', {});
 		}
 
-		data.app.get('/admin/plugins/sso-twitter', data.middleware.admin.buildHeader, render);
-		data.app.get('/api/admin/plugins/sso-twitter', render);
+		data.router.get('/admin/plugins/sso-twitter', data.middleware.admin.buildHeader, render);
+		data.router.get('/api/admin/plugins/sso-twitter', render);
 
 		callback();
 	};
