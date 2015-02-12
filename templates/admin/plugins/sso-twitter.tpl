@@ -5,8 +5,11 @@
 	<div class="alert alert-warning">
 		<p>
 			Create a <strong>Twitter Application</strong> via the
-			<a href="https://dev.twitter.com/">Twitter Developers Page</a> and then
+			<a href="https://apps.twitter.com/">Twitter Developers Page</a> and then
 			paste your application details here.
+		</p>
+		<p>
+			Use http://your.domain/auth/twitter/callback as the callback URL.
 		</p>
 		<br />
 		<input type="text" data-field="social:twitter:key" title="API Key" class="form-control input-lg" placeholder="API Key"><br />
