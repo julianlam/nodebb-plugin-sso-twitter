@@ -10,5 +10,8 @@
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "filter:user.delete", "method": "deleteUserData" }
 	],
-	"templates": "./templates"
+	"templates": "./templates",
+	"scripts": [
+		"static/lib/admin.js"
+	]
 }

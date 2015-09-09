@@ -33,30 +33,32 @@
 	};
 
 	Twitter.getStrategy = function(strategies, callback) {
-		if (meta.config['social:twitter:key'] && meta.config['social:twitter:secret']) {
-			passport.use(new passportTwitter({
-				consumerKey: meta.config['social:twitter:key'],
-				consumerSecret: meta.config['social:twitter:secret'],
-				callbackURL: nconf.get('url') + '/auth/twitter/callback'
-			}, function(token, tokenSecret, profile, done) {
-				Twitter.login(profile.id, profile.username, profile.photos, function(err, user) {
-					if (err) {
-						return done(err);
-					}
-					done(null, user);
+		meta.settings.get('sso-twitter', function(err, settings) {
+			if (!err && settings['key'] && settings['secret']) {
+				passport.use(new passportTwitter({
+					consumerKey: settings['key'],
+					consumerSecret: settings['secret'],
+					callbackURL: nconf.get('url') + '/auth/twitter/callback'
+				}, function(token, tokenSecret, profile, done) {
+					Twitter.login(profile.id, profile.username, profile.photos, function(err, user) {
+						if (err) {
+							return done(err);
+						}
+						done(null, user);
+					});
+				}));
+
+				strategies.push({
+					name: 'twitter',
+					url: '/auth/twitter',
+					callbackURL: '/auth/twitter/callback',
+					icon: constants.admin.icon,
+					scope: ''
 				});
-			}));
 
-			strategies.push({
-				name: 'twitter',
-				url: '/auth/twitter',
-				callbackURL: '/auth/twitter/callback',
-				icon: constants.admin.icon,
-				scope: ''
-			});
-		}
-
-		callback(null, strategies);
+				callback(null, strategies);
+			}
+		});
 	};
 
 	Twitter.login = function(twid, handle, photos, callback) {
