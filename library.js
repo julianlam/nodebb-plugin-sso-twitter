@@ -56,8 +56,9 @@
 					scope: ''
 				});
 
-				callback(null, strategies);
 			}
+
+			callback(null, strategies);
 		});
 	};
 
