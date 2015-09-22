@@ -38,8 +38,16 @@
 				passport.use(new passportTwitter({
 					consumerKey: settings['key'],
 					consumerSecret: settings['secret'],
-					callbackURL: nconf.get('url') + '/auth/twitter/callback'
-				}, function(token, tokenSecret, profile, done) {
+					callbackURL: nconf.get('url') + '/auth/twitter/callback',
+					passReqToCallback: true
+				}, function(req, token, tokenSecret, profile, done) {
+					if (req.hasOwnProperty('user') && req.user.hasOwnProperty('uid') && req.user.uid > 0) {
+						// Save twitter-specific information to the user
+						user.setUserField(req.user.uid, 'twid', profile.id);
+						db.setObjectField('twid:uid', profile.id, req.user.uid);
+						return done(null, req.user);
+					}
+
 					Twitter.login(profile.id, profile.username, profile.photos, function(err, user) {
 						if (err) {
 							return done(err);
@@ -60,6 +68,32 @@
 
 			callback(null, strategies);
 		});
+	};
+
+	Twitter.getAssociation = function(data, callback) {
+		user.getUserField(data.uid, 'twid', function(err, twitterId) {
+			if (err) {
+				return callback(err, data);
+			}
+
+			if (twitterId) {
+				data.associations.push({
+					associated: true,
+					url: 'https://twitter.com/intent/user?user_id=' + twitterId,
+					name: constants.name,
+					icon: constants.admin.icon
+				});
+			} else {
+				data.associations.push({
+					associated: false,
+					url: nconf.get('url') + '/auth/twitter',
+					name: constants.name,
+					icon: constants.admin.icon
+				});
+			}
+
+			callback(null, data);
+		})
 	};
 
 	Twitter.login = function(twid, handle, photos, callback) {
