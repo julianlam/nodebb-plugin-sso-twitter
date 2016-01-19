@@ -12,7 +12,7 @@
 		{ "hook": "filter:user.delete", "method": "deleteUserData" }
 	],
 	"templates": "./templates",
-	"scripts": [
+	"acpScripts": [
 		"static/lib/admin.js"
 	]
 }
