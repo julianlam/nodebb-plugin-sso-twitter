@@ -11,6 +11,8 @@
 		nconf = module.parent.require('nconf'),
 		async = module.parent.require('async');
 
+	var authenticationController = module.parent.require('./controllers/authentication');
+
 	var constants = Object.freeze({
 		'name': "Twitter",
 		'admin': {
@@ -52,6 +54,8 @@
 						if (err) {
 							return done(err);
 						}
+
+						authenticationController.onSuccessfulLogin(req, user.uid);
 						done(null, user);
 					});
 				}));
