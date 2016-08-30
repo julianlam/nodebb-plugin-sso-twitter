@@ -4,11 +4,17 @@
 		<div class="alert alert-info">
 			<ol>
 				<li>
-					Create a <strong>Twitter Application</strong> via the
-					<a href="https://apps.twitter.com/">Twitter Developers Page</a> and then
-					paste your application details here.
+					Create a new App via the <a href="https://apps.twitter.com/">Twitter Apps Page</a> and then
+					paste your application details here. Your <em>Callback URL</em> is <code>http://your.domain/auth/twitter/callback</code>
+					(replace <code>your.domain</code> as necessary).
 				</li>
-				<li>Use http://your.domain/auth/twitter/callback as the callback URL.</li>
+				<li>
+					In the "Keys and Access Tokens" tab, you will find a "Consumer Key" and "Consumer Secret", paste these two
+					values into the corresponding fields below
+				</li>
+				<li>
+					Save and restart your NodeBB.
+				</li>
 			</ol>
 		</div>
 		<form role="form" class="sso-twitter-settings">
