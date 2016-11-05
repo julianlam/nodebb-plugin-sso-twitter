@@ -21,7 +21,9 @@
 		}
 	});
 
-	var Twitter = {};
+    var Twitter = {
+        settings: undefined
+    };
 
 	Twitter.init = function(data, callback) {
 		function render(req, res, next) {
@@ -34,8 +36,11 @@
 		callback();
 	};
 
+
+
 	Twitter.getStrategy = function(strategies, callback) {
 		meta.settings.get('sso-twitter', function(err, settings) {
+            Twitter.settings = settings;
 			if (!err && settings['key'] && settings['secret']) {
 				passport.use(new passportTwitter({
 					consumerKey: settings['key'],
@@ -121,7 +126,8 @@
 					// Save twitter-specific information to the user
 					user.setUserField(uid, 'twid', twid);
 					db.setObjectField('twid:uid', twid, uid);
-
+                    var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on" ? 1: 0;
+                    user.setUserField(uid, 'email:confirmed', autoConfirm);
 					// Save their photo, if present
 					if (photos && photos.length > 0) {
 						var photoUrl = photos[0].value;
