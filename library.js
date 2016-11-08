@@ -1,4 +1,4 @@
-(function(module) {
+(function (module) {
 	"use strict";
 
 	var user = module.parent.require('./user'),
@@ -21,11 +21,11 @@
 		}
 	});
 
-    var Twitter = {
-        settings: undefined
-    };
+	var Twitter = {
+		settings: undefined
+	};
 
-	Twitter.init = function(data, callback) {
+	Twitter.init = function (data, callback) {
 		function render(req, res, next) {
 			res.render('admin/plugins/sso-twitter', {});
 		}
@@ -37,17 +37,16 @@
 	};
 
 
-
-	Twitter.getStrategy = function(strategies, callback) {
-		meta.settings.get('sso-twitter', function(err, settings) {
-            Twitter.settings = settings;
+	Twitter.getStrategy = function (strategies, callback) {
+		meta.settings.get('sso-twitter', function (err, settings) {
+			Twitter.settings = settings;
 			if (!err && settings['key'] && settings['secret']) {
 				passport.use(new passportTwitter({
 					consumerKey: settings['key'],
 					consumerSecret: settings['secret'],
 					callbackURL: nconf.get('url') + '/auth/twitter/callback',
 					passReqToCallback: true
-				}, function(req, token, tokenSecret, profile, done) {
+				}, function (req, token, tokenSecret, profile, done) {
 					if (req.hasOwnProperty('user') && req.user.hasOwnProperty('uid') && req.user.uid > 0) {
 						// Save twitter-specific information to the user
 						user.setUserField(req.user.uid, 'twid', profile.id);
@@ -55,7 +54,7 @@
 						return done(null, req.user);
 					}
 
-					Twitter.login(profile.id, profile.username, profile.photos, function(err, user) {
+					Twitter.login(profile.id, profile.username, profile.photos, function (err, user) {
 						if (err) {
 							return done(err);
 						}
@@ -79,8 +78,8 @@
 		});
 	};
 
-	Twitter.getAssociation = function(data, callback) {
-		user.getUserField(data.uid, 'twid', function(err, twitterId) {
+	Twitter.getAssociation = function (data, callback) {
+		user.getUserField(data.uid, 'twid', function (err, twitterId) {
 			if (err) {
 				return callback(err, data);
 			}
@@ -105,9 +104,9 @@
 		})
 	};
 
-	Twitter.login = function(twid, handle, photos, callback) {
-		Twitter.getUidByTwitterId(twid, function(err, uid) {
-			if(err) {
+	Twitter.login = function (twid, handle, photos, callback) {
+		Twitter.getUidByTwitterId(twid, function (err, uid) {
+			if (err) {
 				return callback(err);
 			}
 
@@ -118,16 +117,16 @@
 				});
 			} else {
 				// New User
-				user.create({username: handle}, function(err, uid) {
-					if(err) {
+				user.create({username: handle}, function (err, uid) {
+					if (err) {
 						return callback(err);
 					}
 
 					// Save twitter-specific information to the user
 					user.setUserField(uid, 'twid', twid);
 					db.setObjectField('twid:uid', twid, uid);
-                    var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on" ? 1: 0;
-                    user.setUserField(uid, 'email:confirmed', autoConfirm);
+					var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on" ? 1 : 0;
+					user.setUserField(uid, 'email:confirmed', autoConfirm);
 					// Save their photo, if present
 					if (photos && photos.length > 0) {
 						var photoUrl = photos[0].value;
@@ -144,8 +143,8 @@
 		});
 	};
 
-	Twitter.getUidByTwitterId = function(twid, callback) {
-		db.getObjectField('twid:uid', twid, function(err, uid) {
+	Twitter.getUidByTwitterId = function (twid, callback) {
+		db.getObjectField('twid:uid', twid, function (err, uid) {
 			if (err) {
 				return callback(err);
 			}
@@ -153,7 +152,7 @@
 		});
 	};
 
-	Twitter.addMenuItem = function(custom_header, callback) {
+	Twitter.addMenuItem = function (custom_header, callback) {
 		custom_header.authentication.push({
 			"route": constants.admin.route,
 			"icon": constants.admin.icon,
@@ -163,13 +162,13 @@
 		callback(null, custom_header);
 	};
 
-	Twitter.deleteUserData = function(uid, callback) {
+	Twitter.deleteUserData = function (uid, callback) {
 		async.waterfall([
 			async.apply(user.getUserField, uid, 'twid'),
-			function(oAuthIdToDelete, next) {
+			function (oAuthIdToDelete, next) {
 				db.deleteObjectField('twid:uid', oAuthIdToDelete, next);
 			}
-		], function(err) {
+		], function (err) {
 			if (err) {
 				winston.error('[sso-twitter] Could not remove OAuthId data for uid ' + uid + '. Error: ' + err);
 				return callback(err);
