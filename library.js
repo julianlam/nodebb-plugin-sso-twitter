@@ -132,7 +132,7 @@
 						var photoUrl = photos[0].value;
 						photoUrl = path.dirname(photoUrl) + '/' + path.basename(photoUrl, path.extname(photoUrl)).slice(0, -6) + 'bigger' + path.extname(photoUrl);
 						user.setUserField(uid, 'uploadedpicture', photoUrl);
-            user.setUserField(uid, 'picture', photoUrl);
+						user.setUserField(uid, 'picture', photoUrl);
 					}
 
 					callback(null, {
