@@ -27,10 +27,10 @@
 				<input type="text" name="secret" id="secret" title="API Secret" class="form-control" placeholder="API Secret>
 			</div>
 			<div class="checkbox">
-						<label for="showSiteTitle" class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
-							<input type="checkbox" class="mdl-switch__input" id="showSiteTitle" name="autoconfirm" />
-							<span class="mdl-switch__label">Skip email verification for people who register using SSO?</span>
-						</label>
+			    <label for="showSiteTitle" class="mdl-switch mdl-js-switch mdl-js-ripple-effect">
+			        <input type="checkbox" class="mdl-switch__input" id="showSiteTitle" name="autoconfirm" />
+			        <span class="mdl-switch__label">Skip email verification for people who register using SSO?</span>
+			    </label>
 			</div>
 		</form>
 	</div>
