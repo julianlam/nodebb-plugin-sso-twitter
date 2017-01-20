@@ -3,16 +3,19 @@
 <div class="col-sm-10 col-xs-12">
 	<div class="alert alert-info">
 		<ol>
-			<liCreate a new App via the
-			<a href="https://apps.twitter.com/">Twitter Apps Page</a> and thepaste your application details here. Your
-			<em>Callback URL</em> is <code>http://your.domain/auth/twitter/callback</cod(replace
-			<code>your.domain</code> as necessary).
-			</li>
-			<li>
-				In the "Keys and Access Tokens" tab, you will find a "Consumer Key" and "Consumer Secret", paste
-				these twovalues into the corresponding fields below
-			</li>
-			<li>Save and restart your NodeBB.</li></ol>
+				<li>
+					Create a new App via the <a href="https://apps.twitter.com/">Twitter Apps Page</a> and then
+					paste your application details here. Your <em>Callback URL</em> is <code>http://your.domain/auth/twitter/callback</code>
+					(replace <code>your.domain</code> as necessary).
+				</li>
+				<li>
+					In the "Keys and Access Tokens" tab, you will find a "Consumer Key" and "Consumer Secret", paste these two
+					values into the corresponding fields below
+				</li>
+				<li>
+					Save and restart your NodeBB.
+				</li>
+		</ol>
 	</div>
 	<form role="form" class="sso-twitter-settings">
 		<div class="form-group">
