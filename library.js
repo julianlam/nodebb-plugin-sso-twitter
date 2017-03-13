@@ -127,6 +127,9 @@
 					db.setObjectField('twid:uid', twid, uid);
 					var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on" ? 1 : 0;
 					user.setUserField(uid, 'email:confirmed', autoConfirm);
+					if (autoConfirm) {
+						db.sortedSetRemove('users:notvalidated', uid);
+					}
 					// Save their photo, if present
 					if (photos && photos.length > 0) {
 						var photoUrl = photos[0].value;
