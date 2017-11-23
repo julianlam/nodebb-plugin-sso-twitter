@@ -26,12 +26,28 @@
 	};
 
 	Twitter.init = function (data, callback) {
+		var hostHelpers = require.main.require('./src/routes/helpers');
 		function render(req, res, next) {
 			res.render('admin/plugins/sso-twitter', {});
 		}
 
 		data.router.get('/admin/plugins/sso-twitter', data.middleware.admin.buildHeader, render);
 		data.router.get('/api/admin/plugins/sso-twitter', render);
+
+		hostHelpers.setupPageRoute(data.router, '/deauth/twitter', data.middleware, [data.middleware.requireUser], function (req, res) {
+			res.render('plugins/sso-twitter/deauth', {
+				service: "Twitter",
+			});
+		});
+		data.router.post('/deauth/twitter', data.middleware.requireUser, function (req, res, next) {
+			Twitter.deleteUserData(req.user.uid, function (err) {
+				if (err) {
+					return next(err);
+				}
+
+				res.redirect(nconf.get('relative_path') + '/user/admin/edit');
+			});
+		});
 
 		callback();
 	};
@@ -78,6 +94,11 @@
 		});
 	};
 
+	Twitter.appendUserHashWhitelist = function (data, callback) {
+		data.whitelist.push('twid');
+		return setImmediate(callback, null, data);
+	};
+
 	Twitter.getAssociation = function (data, callback) {
 		user.getUserField(data.uid, 'twid', function (err, twitterId) {
 			if (err) {
@@ -88,6 +109,7 @@
 				data.associations.push({
 					associated: true,
 					url: 'https://twitter.com/intent/user?user_id=' + twitterId,
+					deauthUrl: nconf.get('url') + '/deauth/twitter',
 					name: constants.name,
 					icon: constants.admin.icon
 				});
@@ -170,7 +192,10 @@
 			async.apply(user.getUserField, uid, 'twid'),
 			function (oAuthIdToDelete, next) {
 				db.deleteObjectField('twid:uid', oAuthIdToDelete, next);
-			}
+			},
+			function (next) {
+				db.deleteObjectField('user:' + uid, 'twid', next);
+			},
 		], function (err) {
 			if (err) {
 				winston.error('[sso-twitter] Could not remove OAuthId data for uid ' + uid + '. Error: ' + err);
