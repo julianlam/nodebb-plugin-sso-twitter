@@ -139,7 +139,7 @@
 				});
 			} else {
 				// Abort user creation if registration via SSO is restricted
-				if (!Twitter.settings.hasOwnProperty('disableRegistration') || Twitter.settings.disableRegistration === 'on') {
+				if (Twitter.settings.disableRegistration === 'on') {
 					return callback(new Error('[[error:sso-registration-disabled, Twitter]]'));
 				}
 
