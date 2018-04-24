@@ -39,7 +39,7 @@
 				service: "Twitter",
 			});
 		});
-		data.router.post('/deauth/twitter', data.middleware.requireUser, function (req, res, next) {
+		data.router.post('/deauth/twitter', [data.middleware.requireUser, data.middleware.applyCSRF], function (req, res, next) {
 			Twitter.deleteUserData(req.user.uid, function (err) {
 				if (err) {
 					return next(err);
