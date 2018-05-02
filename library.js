@@ -192,21 +192,21 @@
 		callback(null, custom_header);
 	};
 
-	Twitter.deleteUserData = function (uid, callback) {
+	Twitter.deleteUserData = function (data, callback) {
 		async.waterfall([
-			async.apply(user.getUserField, uid, 'twid'),
+			async.apply(user.getUserField, data.uid, 'twid'),
 			function (oAuthIdToDelete, next) {
 				db.deleteObjectField('twid:uid', oAuthIdToDelete, next);
 			},
 			function (next) {
-				db.deleteObjectField('user:' + uid, 'twid', next);
+				db.deleteObjectField('user:' + data.uid, 'twid', next);
 			},
 		], function (err) {
 			if (err) {
 				winston.error('[sso-twitter] Could not remove OAuthId data for uid ' + uid + '. Error: ' + err);
 				return callback(err);
 			}
-			callback(null, uid);
+			callback(null, data);
 		});
 	};
 
