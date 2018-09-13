@@ -39,6 +39,15 @@
 				service: "Twitter",
 			});
 		});
+		data.router.get('/auth/twitter/callback', function (req, res, next) {
+			// passport-twitter checks that the oauth_token
+			// parameter is the same as the one it generated.
+			//
+			// Twitter does not support OAuth2, so the "state"
+			// query string argument is not present.
+			req.query.state = req.session.ssoState;
+			next();
+		});
 		data.router.post('/deauth/twitter', [data.middleware.requireUser, data.middleware.applyCSRF], function (req, res, next) {
 			Twitter.deleteUserData(req.user.uid, function (err) {
 				if (err) {
