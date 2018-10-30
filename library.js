@@ -1,17 +1,16 @@
 (function (module) {
 	"use strict";
 
-	var user = module.parent.require('./user'),
-		meta = module.parent.require('./meta'),
-		db = module.parent.require('../src/database'),
-		passport = module.parent.require('passport'),
+	var user = require.main.require('./src/user'),
+		meta = require.main.require('./src/meta'),
+		db = require.main.require('./src/database'),
+		passport = require.main.require('passport'),
 		passportTwitter = require('passport-twitter').Strategy,
-		fs = module.parent.require('fs'),
-		path = module.parent.require('path'),
-		nconf = module.parent.require('nconf'),
-		async = module.parent.require('async');
+		path = require.main.require('path'),
+		nconf = require.main.require('nconf'),
+		async = require.main.require('async');
 
-	var authenticationController = module.parent.require('./controllers/authentication');
+	var authenticationController = require.main.require('./src/controllers/authentication');
 
 	var constants = Object.freeze({
 		'name': "Twitter",
@@ -27,6 +26,7 @@
 
 	Twitter.init = function (data, callback) {
 		var hostHelpers = require.main.require('./src/routes/helpers');
+
 		function render(req, res, next) {
 			res.render('admin/plugins/sso-twitter', {});
 		}
@@ -153,7 +153,7 @@
 				}
 
 				// New User
-				user.create({username: handle}, function (err, uid) {
+				user.create({ username: handle }, function (err, uid) {
 					if (err) {
 						return callback(err);
 					}
