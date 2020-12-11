@@ -80,12 +80,7 @@
 					}
 
 					Twitter.login(profile.id, profile.username, profile.photos, function (err, user) {
-						if (err) {
-							return done(err);
-						}
-
-						authenticationController.onSuccessfulLogin(req, user.uid);
-						done(null, user);
+						done(err, user);
 					});
 				}));
 
@@ -158,20 +153,25 @@
 						return callback(err);
 					}
 
-					// Save twitter-specific information to the user
-					user.setUserField(uid, 'twid', twid);
-					db.setObjectField('twid:uid', twid, uid);
-					var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on" ? 1 : 0;
-					user.setUserField(uid, 'email:confirmed', autoConfirm);
-					if (autoConfirm) {
-						db.sortedSetRemove('users:notvalidated', uid);
-					}
+					const twitterData = {
+						twid: twid,
+					};
+
 					// Save their photo, if present
 					if (photos && photos.length > 0) {
 						var photoUrl = photos[0].value;
 						photoUrl = path.dirname(photoUrl) + '/' + path.basename(photoUrl, path.extname(photoUrl)).slice(0, -6) + 'bigger' + path.extname(photoUrl);
-						user.setUserField(uid, 'uploadedpicture', photoUrl);
-						user.setUserField(uid, 'picture', photoUrl);
+						twitterData.uploadedpicture = photoUrl;
+						twitterData.picture = photoUrl;
+					}
+
+					// Save twitter-specific information to the user
+					user.setUserFields(uid, twitterData);
+					db.setObjectField('twid:uid', twid, uid);
+
+					var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on";
+					if (autoConfirm) {
+						user.email.confirmByUid(uid);
 					}
 
 					callback(null, {
