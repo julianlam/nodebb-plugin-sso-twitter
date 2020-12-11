@@ -10,8 +10,6 @@
 		nconf = require.main.require('nconf'),
 		async = require.main.require('async');
 
-	var authenticationController = require.main.require('./src/controllers/authentication');
-
 	var constants = Object.freeze({
 		'name': "Twitter",
 		'admin': {
