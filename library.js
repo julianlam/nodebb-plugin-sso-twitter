@@ -98,7 +98,7 @@
 
 	Twitter.appendUserHashWhitelist = function (data, callback) {
 		data.whitelist.push('twid');
-		return setImmediate(callback, null, data);
+		setImmediate(callback, null, data);
 	};
 
 	Twitter.getAssociation = function (data, callback) {
