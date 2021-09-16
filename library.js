@@ -7,7 +7,6 @@ const passportTwitter = require('passport-twitter').Strategy;
 
 const path = require.main.require('path');
 const nconf = require.main.require('nconf');
-// const async = require.main.require('async');
 const user = require.main.require('./src/user');
 const meta = require.main.require('./src/meta');
 const db = require.main.require('./src/database');
