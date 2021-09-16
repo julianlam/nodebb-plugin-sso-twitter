@@ -22,7 +22,7 @@ const constants = Object.freeze({
 Twitter.init = async function (data) {
 	const hostHelpers = require.main.require('./src/routes/helpers');
 
-	hostHelpers.setupAdminPageRoute(data.router, '/admin/plugins/sso-twitter', data.middleware, (req, res) => {
+	hostHelpers.setupAdminPageRoute(data.router, '/admin/plugins/sso-twitter', data.middleware, [], (req, res) => {
 		res.render('admin/plugins/sso-twitter', {});
 	});
 
