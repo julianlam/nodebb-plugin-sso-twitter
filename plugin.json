@@ -5,12 +5,12 @@
 	"url": "https://github.com/julianlam/nodebb-plugin-sso-twitter",
 	"library": "./library.js",
 	"hooks": [
-		{ "hook": "filter:auth.init", "method": "getStrategy" },
-		{ "hook": "filter:auth.list", "method": "getAssociation" },
-		{ "hook": "filter:admin.header.build", "method": "addMenuItem" },
 		{ "hook": "static:app.load", "method": "init" },
+		{ "hook": "filter:auth.init", "method": "filterAuthInit" },
+		{ "hook": "filter:auth.list", "method": "filterAuthList" },
+		{ "hook": "filter:admin.header.build", "method": "addMenuItem" },
 		{ "hook": "static:user.delete", "method": "deleteUserData" },
-		{ "hook": "filter:user.whitelistFields", "method": "appendUserHashWhitelist" }
+		{ "hook": "filter:user.whitelistFields", "method": "filterUserWhitelistFields" }
 	],
 	"templates": "./templates",
 	"acpScripts": [
