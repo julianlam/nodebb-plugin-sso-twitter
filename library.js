@@ -1,221 +1,182 @@
-(function (module) {
-	"use strict";
+'use strict';
 
-	var user = require.main.require('./src/user'),
-		meta = require.main.require('./src/meta'),
-		db = require.main.require('./src/database'),
-		passport = require.main.require('passport'),
-		passportTwitter = require('passport-twitter').Strategy,
-		path = require.main.require('path'),
-		nconf = require.main.require('nconf'),
-		async = require.main.require('async');
+const Twitter = module.exports;
 
-	var constants = Object.freeze({
-		'name': "Twitter",
-		'admin': {
-			'route': '/plugins/sso-twitter',
-			'icon': 'fa-twitter-square'
-		}
+const passport = require.main.require('passport');
+const passportTwitter = require('passport-twitter').Strategy;
+
+const path = require.main.require('path');
+const nconf = require.main.require('nconf');
+// const async = require.main.require('async');
+const user = require.main.require('./src/user');
+const meta = require.main.require('./src/meta');
+const db = require.main.require('./src/database');
+
+const constants = Object.freeze({
+	name: 'Twitter',
+	admin: {
+		route: '/plugins/sso-twitter',
+		icon: 'fa-twitter-square',
+	},
+});
+
+Twitter.init = async function (data) {
+	const hostHelpers = require.main.require('./src/routes/helpers');
+
+	hostHelpers.setupAdminPageRoute(data.router, '/admin/plugins/sso-twitter', data.middleware, (req, res) => {
+		res.render('admin/plugins/sso-twitter', {});
 	});
 
-	var Twitter = {
-		settings: undefined
-	};
+	hostHelpers.setupPageRoute(data.router, '/deauth/twitter', data.middleware, [data.middleware.requireUser], (req, res) => {
+		res.render('plugins/sso-twitter/deauth', {
+			service: 'Twitter',
+		});
+	});
 
-	Twitter.init = function (data, callback) {
-		var hostHelpers = require.main.require('./src/routes/helpers');
+	data.router.get('/auth/twitter/callback', (req, res, next) => {
+		// passport-twitter checks that the oauth_token
+		// parameter is the same as the one it generated.
+		//
+		// Twitter does not support OAuth2, so the "state"
+		// query string argument is not present.
+		req.query.state = req.session.ssoState;
+		next();
+	});
 
-		function render(req, res, next) {
-			res.render('admin/plugins/sso-twitter', {});
+	data.router.post('/deauth/twitter', [data.middleware.requireUser, data.middleware.applyCSRF], async (req, res, next) => {
+		try {
+			await Twitter.deleteUserData(req.user.uid);
+			res.redirect(`${nconf.get('relative_path')}/me/edit`);
+		} catch (err) {
+			next(err);
 		}
+	});
+};
 
-		data.router.get('/admin/plugins/sso-twitter', data.middleware.admin.buildHeader, render);
-		data.router.get('/api/admin/plugins/sso-twitter', render);
-
-		hostHelpers.setupPageRoute(data.router, '/deauth/twitter', data.middleware, [data.middleware.requireUser], function (req, res) {
-			res.render('plugins/sso-twitter/deauth', {
-				service: "Twitter",
-			});
-		});
-		data.router.get('/auth/twitter/callback', function (req, res, next) {
-			// passport-twitter checks that the oauth_token
-			// parameter is the same as the one it generated.
-			//
-			// Twitter does not support OAuth2, so the "state"
-			// query string argument is not present.
-			req.query.state = req.session.ssoState;
-			next();
-		});
-		data.router.post('/deauth/twitter', [data.middleware.requireUser, data.middleware.applyCSRF], function (req, res, next) {
-			Twitter.deleteUserData(req.user.uid, function (err) {
-				if (err) {
-					return next(err);
-				}
-
-				res.redirect(nconf.get('relative_path') + '/me/edit');
-			});
-		});
-
-		callback();
-	};
-
-
-	Twitter.getStrategy = function (strategies, callback) {
-		meta.settings.get('sso-twitter', function (err, settings) {
-			Twitter.settings = settings;
-			if (!err && settings['key'] && settings['secret']) {
-				passport.use(new passportTwitter({
-					consumerKey: settings['key'],
-					consumerSecret: settings['secret'],
-					callbackURL: nconf.get('url') + '/auth/twitter/callback',
-					passReqToCallback: true
-				}, function (req, token, tokenSecret, profile, done) {
-					if (req.hasOwnProperty('user') && req.user.hasOwnProperty('uid') && req.user.uid > 0) {
-						// Save twitter-specific information to the user
-						user.setUserField(req.user.uid, 'twid', profile.id);
-						db.setObjectField('twid:uid', profile.id, req.user.uid);
-						return done(null, req.user);
-					}
-
-					Twitter.login(profile.id, profile.username, profile.photos, function (err, user) {
-						done(err, user);
-					});
-				}));
-
-				strategies.push({
-					name: 'twitter',
-					url: '/auth/twitter',
-					callbackURL: '/auth/twitter/callback',
-					icon: constants.admin.icon,
-					scope: ''
-				});
-
-			}
-
-			callback(null, strategies);
-		});
-	};
-
-	Twitter.appendUserHashWhitelist = function (data, callback) {
-		data.whitelist.push('twid');
-		setImmediate(callback, null, data);
-	};
-
-	Twitter.getAssociation = function (data, callback) {
-		user.getUserField(data.uid, 'twid', function (err, twitterId) {
-			if (err) {
-				return callback(err, data);
-			}
-
-			if (twitterId) {
-				data.associations.push({
-					associated: true,
-					url: 'https://twitter.com/intent/user?user_id=' + twitterId,
-					deauthUrl: nconf.get('url') + '/deauth/twitter',
-					name: constants.name,
-					icon: constants.admin.icon
-				});
-			} else {
-				data.associations.push({
-					associated: false,
-					url: nconf.get('url') + '/auth/twitter',
-					name: constants.name,
-					icon: constants.admin.icon
-				});
-			}
-
-			callback(null, data);
-		})
-	};
-
-	Twitter.login = function (twid, handle, photos, callback) {
-		Twitter.getUidByTwitterId(twid, function (err, uid) {
-			if (err) {
-				return callback(err);
-			}
-
-			if (uid !== null) {
-				// Existing User
-				callback(null, {
-					uid: uid
-				});
-			} else {
-				// Abort user creation if registration via SSO is restricted
-				if (Twitter.settings.disableRegistration === 'on') {
-					return callback(new Error('[[error:sso-registration-disabled, Twitter]]'));
-				}
-
-				// New User
-				user.create({ username: handle }, function (err, uid) {
-					if (err) {
-						return callback(err);
-					}
-
-					const twitterData = {
-						twid: twid,
-					};
-
-					// Save their photo, if present
-					if (photos && photos.length > 0) {
-						var photoUrl = photos[0].value;
-						photoUrl = path.dirname(photoUrl) + '/' + path.basename(photoUrl, path.extname(photoUrl)).slice(0, -6) + 'bigger' + path.extname(photoUrl);
-						twitterData.uploadedpicture = photoUrl;
-						twitterData.picture = photoUrl;
-					}
-
+Twitter.filterAuthInit = async function (strategies) {
+	const settings = await meta.settings.get('sso-twitter');
+	Twitter.settings = settings;
+	if (settings.key && settings.secret) {
+		passport.use(new passportTwitter({
+			consumerKey: settings.key,
+			consumerSecret: settings.secret,
+			callbackURL: `${nconf.get('url')}/auth/twitter/callback`,
+			passReqToCallback: true,
+		}, async (req, token, tokenSecret, profile, done) => {
+			try {
+				if (req.hasOwnProperty('user') && req.user.hasOwnProperty('uid') && req.user.uid > 0) {
 					// Save twitter-specific information to the user
-					user.setUserFields(uid, twitterData);
-					db.setObjectField('twid:uid', twid, uid);
+					await Promise.all([
+						user.setUserField(req.user.uid, 'twid', profile.id),
+						db.setObjectField('twid:uid', profile.id, req.user.uid),
+					]);
+					return done(null, req.user);
+				}
 
-					var autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === "on";
-					if (autoConfirm) {
-						user.email.confirmByUid(uid);
-					}
-
-					callback(null, {
-						uid: uid
-					});
-				});
+				const userData = await Twitter.login(profile.id, profile.username, profile.photos);
+				done(null, userData);
+			} catch (err) {
+				done(err);
 			}
+		}));
+
+		strategies.push({
+			name: 'twitter',
+			url: '/auth/twitter',
+			callbackURL: '/auth/twitter/callback',
+			icon: constants.admin.icon,
+			scope: '',
 		});
+	}
+
+	return strategies;
+};
+
+Twitter.filterAuthList = async function (data) {
+	const twitterId = await user.getUserField(data.uid, 'twid');
+	if (twitterId) {
+		data.associations.push({
+			associated: true,
+			url: `https://twitter.com/intent/user?user_id=${twitterId}`,
+			deauthUrl: `${nconf.get('url')}/deauth/twitter`,
+			name: constants.name,
+			icon: constants.admin.icon,
+		});
+	} else {
+		data.associations.push({
+			associated: false,
+			url: `${nconf.get('url')}/auth/twitter`,
+			name: constants.name,
+			icon: constants.admin.icon,
+		});
+	}
+	return data;
+};
+
+Twitter.addMenuItem = function (custom_header) {
+	custom_header.authentication.push({
+		route: constants.admin.route,
+		icon: constants.admin.icon,
+		name: constants.name,
+	});
+	return custom_header;
+};
+
+Twitter.deleteUserData = async function (data) {
+	const twid = await user.getUserField(data.uid, 'twid');
+	if (twid) {
+		await db.deleteObjectField('twid:uid', twid);
+		await db.deleteObjectField(`user:${data.uid}`, 'twid');
+	}
+};
+
+Twitter.filterUserWhitelistFields = function (data) {
+	data.whitelist.push('twid');
+	return data;
+};
+
+Twitter.login = async function (twid, handle, photos) {
+	let uid = await Twitter.getUidByTwitterId(twid);
+	if (uid) { // Existing User
+		return { uid: uid };
+	}
+
+	// Abort user creation if registration via SSO is restricted
+	if (Twitter.settings.disableRegistration === 'on') {
+		throw new Error('[[error:sso-registration-disabled, Twitter]]');
+	}
+
+	// New User
+	uid = await user.create({ username: handle });
+	const twitterData = {
+		twid: twid,
 	};
 
-	Twitter.getUidByTwitterId = function (twid, callback) {
-		db.getObjectField('twid:uid', twid, function (err, uid) {
-			if (err) {
-				return callback(err);
-			}
-			callback(null, uid);
-		});
-	};
+	// Save their photo, if present
+	if (photos && photos.length > 0) {
+		const photoUrl = photos[0].value;
+		twitterData.uploadedpicture = `${path.dirname(photoUrl)}/${path.basename(photoUrl, path.extname(photoUrl)).slice(0, -6)}bigger${path.extname(photoUrl)}`;
+		twitterData.picture = twitterData.uploadedpicture;
+	}
 
-	Twitter.addMenuItem = function (custom_header, callback) {
-		custom_header.authentication.push({
-			"route": constants.admin.route,
-			"icon": constants.admin.icon,
-			"name": constants.name
-		});
+	// Save twitter-specific information to the user
+	await Promise.all([
+		user.setUserFields(uid, twitterData),
+		db.setObjectField('twid:uid', twid, uid),
+	]);
 
-		callback(null, custom_header);
-	};
+	const autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === 'on';
+	if (autoConfirm) {
+		await user.email.confirmByUid(uid);
+	}
 
-	Twitter.deleteUserData = function (data, callback) {
-		async.waterfall([
-			async.apply(user.getUserField, data.uid, 'twid'),
-			function (oAuthIdToDelete, next) {
-				db.deleteObjectField('twid:uid', oAuthIdToDelete, next);
-			},
-			function (next) {
-				db.deleteObjectField('user:' + data.uid, 'twid', next);
-			},
-		], function (err) {
-			if (err) {
-				winston.error('[sso-twitter] Could not remove OAuthId data for uid ' + uid + '. Error: ' + err);
-				return callback(err);
-			}
-			callback(null, data);
-		});
-	};
+	return { uid: uid };
+};
 
-	module.exports = Twitter;
-}(module));
+Twitter.getUidByTwitterId = async function (twid) {
+	return await db.getObjectField('twid:uid', twid);
+};
+
+
+
+
