@@ -1,22 +1,21 @@
-define('admin/plugins/sso-twitter', ['settings'], function(Settings) {
-	'use strict';
-	/* globals $, app, socket, require */
+'use strict';
 
+define('admin/plugins/sso-twitter', ['settings'], function (Settings) {
 	var ACP = {};
 
-	ACP.init = function() {
+	ACP.init = function () {
 		Settings.load('sso-twitter', $('.sso-twitter-settings'));
 
-		$('#save').on('click', function() {
-			Settings.save('sso-twitter', $('.sso-twitter-settings'), function() {
+		$('#save').on('click', function () {
+			Settings.save('sso-twitter', $('.sso-twitter-settings'), function () {
 				app.alert({
 					type: 'success',
 					alert_id: 'sso-twitter-saved',
 					title: 'Settings Saved',
 					message: 'Please reload your NodeBB to apply these settings',
-					clickfn: function() {
+					clickfn: function () {
 						socket.emit('admin.reload');
-					}
+					},
 				});
 			});
 		});

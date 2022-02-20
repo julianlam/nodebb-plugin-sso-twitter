@@ -13,7 +13,7 @@
 		{ "hook": "filter:user.whitelistFields", "method": "filterUserWhitelistFields" }
 	],
 	"templates": "./templates",
-	"acpScripts": [
-		"static/lib/admin.js"
-	]
+	"modules": {
+		"../admin/plugins/sso-twitter.js": "static/lib/admin.js"
+	}
 }
