@@ -88,7 +88,10 @@ Twitter.filterAuthInit = async function (strategies) {
 				normal: 'fa-twitter',
 				square: 'fa-twitter-square',
 			},
-			label: '[[social:sign-in-with-twitter]]',
+			labels: {
+				login: '[[social:sign-in-with-twitter]]',
+				register: '[[social:sign-up-with-twitter]]',
+			},
 			color: '#1DA1F2',
 			scope: '',
 		});
