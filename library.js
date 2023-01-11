@@ -85,8 +85,8 @@ Twitter.filterAuthInit = async function (strategies) {
 			callbackURL: '/auth/twitter/callback',
 			icon: constants.admin.icon,
 			icons: {
-				normal: 'fa-twitter',
-				square: 'fa-twitter-square',
+				normal: 'fa-brands fa-twitter',
+				square: 'fa-brands fa-twitter-square',
 			},
 			labels: {
 				login: '[[social:sign-in-with-twitter]]',
