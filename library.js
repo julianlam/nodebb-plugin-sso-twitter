@@ -53,12 +53,11 @@ Twitter.init = async function (data) {
 };
 
 Twitter.filterAuthInit = async function (strategies) {
-	const settings = await meta.settings.get('sso-twitter');
-	Twitter.settings = settings;
-	if (settings.key && settings.secret) {
+	const { key, secret } = await meta.settings.get('sso-twitter');
+	if (key && secret) {
 		passport.use(new passportTwitter({
-			consumerKey: settings.key,
-			consumerSecret: settings.secret,
+			consumerKey: key,
+			consumerSecret: secret,
 			callbackURL: `${nconf.get('url')}/auth/twitter/callback`,
 			passReqToCallback: true,
 		}, async (req, token, tokenSecret, profile, done) => {
@@ -144,21 +143,21 @@ Twitter.filterUserWhitelistFields = function (data) {
 };
 
 Twitter.login = async function (twid, handle, photos) {
+	const { disableRegistration } = await meta.settings.get('sso-twitter');
+
 	let uid = await Twitter.getUidByTwitterId(twid);
 	if (uid) { // Existing User
-		return { uid: uid };
+		return { uid };
 	}
 
 	// Abort user creation if registration via SSO is restricted
-	if (Twitter.settings.disableRegistration === 'on') {
+	if (disableRegistration === 'on') {
 		throw new Error('[[error:sso-registration-disabled, Twitter]]');
 	}
 
 	// New User
 	uid = await user.create({ username: handle });
-	const twitterData = {
-		twid: twid,
-	};
+	const twitterData = { twid };
 
 	// Save their photo, if present
 	if (photos && photos.length > 0) {
@@ -173,12 +172,7 @@ Twitter.login = async function (twid, handle, photos) {
 		db.setObjectField('twid:uid', twid, uid),
 	]);
 
-	const autoConfirm = Twitter.settings && Twitter.settings.autoconfirm === 'on';
-	if (autoConfirm) {
-		await user.email.confirmByUid(uid);
-	}
-
-	return { uid: uid };
+	return { uid };
 };
 
 Twitter.getUidByTwitterId = async function (twid) {

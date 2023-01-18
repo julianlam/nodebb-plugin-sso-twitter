@@ -27,12 +27,6 @@
 				<input type="text" name="secret" id="secret" title="API Secret" class="form-control" placeholder="API Secret">
 			</div>
 			<div class="form-check">
-				<input type="checkbox" class="form-check-input" id="autoconfirm" name="autoconfirm" />
-				<label for="autoconfirm" class="form-check-label">
-					Skip email verification for people who register using SSO?
-				</label>
-			</div>
-			<div class="form-check">
 				<input type="checkbox" class="form-check-input" id="disableRegistration" name="disableRegistration" />
 				<label for="disableRegistration" class="form-check-label">
 					Disable user registration via SSO
