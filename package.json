@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-sso-twitter",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "NodeBB Twitter SSO",
   "main": "library.js",
   "repository": {
