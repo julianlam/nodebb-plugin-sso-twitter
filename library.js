@@ -23,7 +23,9 @@ Twitter.init = async function (data) {
 	const hostHelpers = require.main.require('./src/routes/helpers');
 
 	hostHelpers.setupAdminPageRoute(data.router, '/admin/plugins/sso-twitter', (req, res) => {
-		res.render('admin/plugins/sso-twitter', {});
+		res.render('admin/plugins/sso-twitter', {
+			title: constants.name,
+		});
 	});
 
 	hostHelpers.setupPageRoute(data.router, '/deauth/twitter', [data.middleware.requireUser], (req, res) => {
