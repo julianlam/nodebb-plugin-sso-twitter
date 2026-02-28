@@ -1,7 +1,7 @@
 'use strict';
 
 define('admin/plugins/sso-twitter', ['settings'], function (Settings) {
-	var ACP = {};
+	const ACP = {};
 
 	ACP.init = function () {
 		Settings.load('sso-twitter', $('.sso-twitter-settings'));

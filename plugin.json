@@ -10,7 +10,11 @@
 		{ "hook": "filter:auth.list", "method": "filterAuthList" },
 		{ "hook": "filter:admin.header.build", "method": "addMenuItem" },
 		{ "hook": "static:user.delete", "method": "deleteUserData" },
-		{ "hook": "filter:user.whitelistFields", "method": "filterUserWhitelistFields" }
+		{ "hook": "filter:user.whitelistFields", "method": "filterUserWhitelistFields" },
+		{ "hook": "filter:user.addToApprovalQueue", "method": "addToApprovalQueue" },
+		{ "hook": "filter:user.create", "method": "filterUserCreate" },
+		{ "hook": "action:user.create", "method": "actionUserCreate" },
+		{ "hook": "filter:user.getRegistrationQueue", "method": "filterUserGetRegistrationQueue" }
 	],
 	"templates": "./templates",
 	"modules": {

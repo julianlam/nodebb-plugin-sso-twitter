@@ -30,7 +30,7 @@ Twitter.init = async function (data) {
 
 	hostHelpers.setupPageRoute(data.router, '/deauth/twitter', [data.middleware.requireUser], (req, res) => {
 		res.render('plugins/sso-twitter/deauth', {
-			service: 'Twitter',
+			service: constants.name,
 		});
 	});
 
@@ -73,8 +73,11 @@ Twitter.filterAuthInit = async function (strategies) {
 					return done(null, req.user);
 				}
 
-				const userData = await Twitter.login(profile.id, profile.username, profile.photos);
-				done(null, userData);
+				const { queued, uid, message} = await Twitter.login(req, profile.id, profile.username, profile.photos);
+				if (queued) {
+					return done(null, false, { message });
+				}
+				done(null, { uid });
 			} catch (err) {
 				done(err);
 			}
@@ -144,10 +147,10 @@ Twitter.filterUserWhitelistFields = function (data) {
 	return data;
 };
 
-Twitter.login = async function (twid, handle, photos) {
+Twitter.login = async function (req, twid, handle, photos) {
 	const { disableRegistration } = await meta.settings.get('sso-twitter');
 
-	let uid = await Twitter.getUidByTwitterId(twid);
+	const uid = await Twitter.getUidByTwitterId(twid);
 	if (uid) { // Existing User
 		return { uid };
 	}
@@ -156,25 +159,65 @@ Twitter.login = async function (twid, handle, photos) {
 	if (disableRegistration === 'on') {
 		throw new Error('[[error:sso-registration-disabled, Twitter]]');
 	}
-
-	// New User
-	uid = await user.create({ username: handle });
-	const twitterData = { twid };
-
+	let picture = '';
 	// Save their photo, if present
 	if (photos && photos.length > 0) {
 		const photoUrl = photos[0].value;
-		twitterData.uploadedpicture = `${path.dirname(photoUrl)}/${path.basename(photoUrl, path.extname(photoUrl)).slice(0, -6)}bigger${path.extname(photoUrl)}`;
-		twitterData.picture = twitterData.uploadedpicture;
+		picture = `${path.dirname(photoUrl)}/${path.basename(photoUrl, path.extname(photoUrl)).slice(0, -6)}bigger${path.extname(photoUrl)}`;
 	}
 
-	// Save twitter-specific information to the user
-	await Promise.all([
-		user.setUserFields(uid, twitterData),
-		db.setObjectField('twid:uid', twid, uid),
-	]);
+	// create or queue
+	return await user.createOrQueue(req, {
+		twid: twid,
+		username: handle,
+		picture: picture,
+	});
+};
 
-	return { uid };
+Twitter.addToApprovalQueue = async (hookData) => {
+	await saveTwitterSpecificData(hookData.data, hookData.userData);
+	return hookData;
+};
+
+Twitter.filterUserCreate = async (hookData) => {
+	await saveTwitterSpecificData(hookData.user, hookData.data);
+	return hookData;
+};
+
+async function saveTwitterSpecificData(targetObj, sourceObj) {
+	const { twid, picture } = sourceObj;
+	if (twid) {
+		const uid = await Twitter.getUidByTwitterId(twid);
+		if (uid) {
+			throw new Error('[[error:sso-account-exists, Twitter]]');
+		}
+		targetObj.twid = twid;
+		if (picture) {
+			targetObj.picture = picture;
+			targetObj.uploadedpicture = picture;
+		}
+	}
+}
+
+Twitter.actionUserCreate = async (hookData) => {
+	const { uid } = hookData.user;
+	const twid = await user.getUserField(uid, 'twid');
+	if (twid) {
+		await db.setObjectField('twid:uid', twid, uid);
+	}
+};
+
+Twitter.filterUserGetRegistrationQueue = async (hookData) => {
+	const { users } = hookData;
+	users.forEach((user) => {
+		if (user?.twid) {
+			user.sso = {
+				icon: 'fa-brands fa-twitter',
+				name: constants.name,
+			};
+		}
+	});
+	return hookData;
 };
 
 Twitter.getUidByTwitterId = async function (twid) {
