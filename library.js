@@ -2,14 +2,14 @@
 
 const Twitter = module.exports;
 
-const passport = require.main.require('passport');
+const passport = nodebb.require('passport');
 const passportTwitter = require('passport-twitter').Strategy;
 
-const path = require.main.require('path');
-const nconf = require.main.require('nconf');
-const user = require.main.require('./src/user');
-const meta = require.main.require('./src/meta');
-const db = require.main.require('./src/database');
+const path = nodebb.require('path');
+const nconf = nodebb.require('nconf');
+const user = nodebb.require('./src/user');
+const meta = nodebb.require('./src/meta');
+const db = nodebb.require('./src/database');
 
 const constants = Object.freeze({
 	name: 'Twitter',
@@ -20,7 +20,7 @@ const constants = Object.freeze({
 });
 
 Twitter.init = async function (data) {
-	const hostHelpers = require.main.require('./src/routes/helpers');
+	const hostHelpers = nodebb.require('./src/routes/helpers');
 
 	hostHelpers.setupAdminPageRoute(data.router, '/admin/plugins/sso-twitter', (req, res) => {
 		res.render('admin/plugins/sso-twitter', {
